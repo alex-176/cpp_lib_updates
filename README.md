@@ -11,7 +11,7 @@ Table of contents:
 [Cases of possible changes and ways to add them:](#cases-of-possible-changes-and-ways-to-add-them)  
 [1. a new function argument](#1-a-new-function-argument)  
 [2. a new struct member](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)  
-[3. inline parts changes](#3-inline-parts-changes)  
+[3. changes in inline parts](#3-changes-in-inline-parts)  
 [4. inline classes and non-inline functions that use them](#4-inline-classes-and-non-inline-functions-that-use-them)  
 [6. enumerations](#6-enumerations)  
 [7. breaking changes](#7-breaking-changes)  
@@ -105,7 +105,7 @@ int main()
 2. API header should be clean and contain only one name for a function (preferably without a version suffix)  
 
 ### Why not C API?
-Often, people are avoiding C++ API because of an old trauma of C++ name mangling and ABI instability (on Linux it was std::string/std::list change in C++11, and on Windows is was VC++ that was changing name mangling in every version). Since 2015 C++ ABI and name mangling are quite stable. Of course, bugs happen and you can use C API with [hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api) if you want to be on the safe side. In reality, it causes more support work to save some headaches in case of a bug in your compiler. In my view, the price is quite high for mitigating only one type of possible compiler bugs. But if you insist - use C names with versions (foo->foo_v1->foo_v2) and C++ inline API on top ([hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api)). 
+Often, people avoid C++ API because of an old trauma of C++ name mangling and ABI instability (on Linux it was std::string/std::list change in C++11, and on Windows is was VC++ that was changing name mangling in every version). Since 2015 C++ ABI and name mangling are quite stable. Of course, bugs happen and you can use C API with [hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api) if you want to be on the safe side. In reality, it causes more support work to save some headaches in case of a bug in your compiler. In my view, the price is quite high for mitigating only one type of possible compiler bugs. But if you insist - use C names with versions (foo->foo_v1->foo_v2) and C++ inline API on top ([hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api)). 
 
 ### Names visibility
 In examples for simplicity, we assume all the symbols have default visibility (e.i. symbol names are saved into a binary and available at runtime for name resolution).  In reality, only public  API names should be visible and marked accordingly. see [Introduction to symbol visibility](https://developer.ibm.com/articles/au-aix-symbol-visibility/).
@@ -193,14 +193,14 @@ void init(params const & init_params)
 }
 }
 ```
-### 3. inline parts changes
+### 3. changes in inline parts
 Inline functions are not always inlined into compiled code. It means if several modules have an implementation of an inline function, only one of them will be used by the loader. For example:
 
 lib1 defines: inline int bar() { return 10; }
 
 lib2 defines: inline int bar() { return 20; }
 
-an app is using both lib1 and lib2. if bar was not inlined (it's possible) then loader will resolve both bar functions to point to one of them. it violates [ODR](https://en.cppreference.com/w/cpp/language/definition). To fix it we reside the inline code inside its own inline namespace and in case of any change we update the name of the inline namespace:
+an app is using both lib1 and lib2. if `bar` was not inlined (it's possible) then loader will resolve both bar functions to point to one of them. it violates [ODR](https://en.cppreference.com/w/cpp/language/definition). To fix it we reside the inline code inside its own inline namespace and in case of any change we update the name of the inline namespace:
 
   include/A/api.hpp:
 ```cpp
@@ -232,7 +232,7 @@ class some_class{
 void use_some_class(some_class & arg);
 }
 ```
-we have non-inline use_some_class (case 2) that depends on inline part - some_class (case 3). The concept of inline changes (just update its namespace name) does not work here because it causes an update of non-inline use_some_class. A possible approach is to extract functionality that is used by non-inline functions into an interface and put the interface into the namespace of the corresponding non-inline functions
+we have non-inline use_some_class (case 2) that depends on inline part - some_class ([case 3.](#3-changes-in-inline-parts)). The concept of inline changes (just update its namespace name) does not work here because it causes an update of non-inline use_some_class. A possible approach is to extract functionality that is used by non-inline functions into an interface and put the interface into the namespace of the corresponding non-inline functions
 
 include/A/api.hpp
 ```cpp
