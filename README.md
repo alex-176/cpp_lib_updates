@@ -140,13 +140,12 @@ void foo()
 
 Now ModuleA exports both `foo()` and `foo(int)`, but only `foo(int)` is exposed in the header. So after the next recompilation of ModuleB, it will start using `foo(int)`.
 
-
 ### 2. a new struct member and a function that takes it as an argument 
 Inline namespaces come to rescue.
 
 [Inline namespaces](https://en.cppreference.com/w/cpp/language/namespace#Inline_namespaces) exist since c++11. They don't change the way the client code looks but change compiler-generated mangled names inside inline namespace (usually by adding a namespace name to the generated names). [example on godbolt](https://godbolt.org/z/WsGM5TKe5)
 
-The idea is to keep an old implementation inside an old inline namespace in a cpp file and a new implementation inside a new inline namespace. This way, old clients can resolve old names at runtime, and clients will use new names after recompilation.
+The idea is to place the old implementation within an old inline namespace in a `.cpp` file, and the new implementation within a new inline namespace. This allows old clients to resolve the old names at runtime, while clients that are recompiled will use the new names.
 
 include/A/api.hpp:
 ```cpp
