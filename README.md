@@ -44,7 +44,7 @@ ModuleA source code file structure:
 │   └── test.cpp
 └── ...
 ```
-include/A/api.hpp:
+`include/A/api.hpp`:
 ```cpp
 namespace a{
 struct params{
@@ -55,7 +55,7 @@ void foo();
 inline int bar() { return 10; }
 }
 ```
-src/api.cpp:
+`src/api.cpp`:
 ```cpp
 #include "A/api.hpp"
 #include <iostream>
@@ -86,7 +86,7 @@ ModuleB source code file structure:
 
 src/main.cpp
 
-tests/testB.cpp:
+`tests/testB.cpp`:
 ```cpp
 #include <A/api.hpp>
 int main()
@@ -115,14 +115,14 @@ For simplicity in our examples, we assume all symbols have default visibility (i
 ### 1. a new function argument
 Change the function signature by adding a new argument with a default value and define an old function that calls a new one:
 
-include/A/api.hpp:
+`include/A/api.hpp`:
 ```cpp
 namespace a{
     // ....
     void foo(int arg = 0); 
 }
 ```
-src/api.cpp:
+`src/api.cpp`:
 ```cpp
 #include <A/api.hpp>
 #include <iostream>
@@ -148,7 +148,7 @@ Inline namespaces come to rescue.
 
 The idea is to place the old implementation within an old inline namespace in a `.cpp` file, and the new implementation within a new inline namespace. This allows old clients to resolve the old names at runtime, while clients that are recompiled will use the new names.
 
-include/A/api.hpp:
+`include/A/api.hpp`:
 ```cpp
 namespace a{
 // add inline namespace with a version for the changed part:
@@ -162,7 +162,7 @@ void init(params const & _params);
 // ...
 }
 ```
-src/api.cpp:
+`src/api.cpp`:
 ```cpp
 #include <A/api.hpp>
 #include <iostream>
@@ -176,7 +176,7 @@ void init(params const & _params)
 ```
 add another file that implements translation from the old struct into the new one. This way we provide binary compatibility for old clients.
 
-src/api_compatibility.cpp:
+`src/api_compatibility.cpp`:
 ```cpp
 #include <A/api.hpp>
 namespace a{
@@ -202,7 +202,7 @@ lib2 defines: `inline int bar() { return 20; }`
 
 an app is using both lib1 and lib2. if `bar` was not inlined (it's possible) then loader will resolve both bar functions to point to one of them. it violates [ODR](https://en.cppreference.com/w/cpp/language/definition). To fix it we reside the inline code inside its own inline namespace and in case of any change we update the name of the inline namespace:
 
-include/A/api.hpp:
+`include/A/api.hpp`:
 ```cpp
 namespace a{
 // ...
@@ -215,7 +215,7 @@ inline int bar() { return 10; }
 ### 4. inline classes and non-inline functions that use them
 assume we have the following interface:
 
-include/A/api.hpp:
+`include/A/api.hpp`:
 ```cpp
 namespace a{
 class some_class{
@@ -234,7 +234,7 @@ void use_some_class(some_class & arg);
 ```
 we have non-inline `use_some_class()` ([case 2.](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)) that depends on inline part - `some_class` ([case 3.](#3-changes-in-inline-parts)). The concept of inline changes (just update its namespace name) does not work here because it causes an update of non-inline `use_some_class()`. One possible approach is to extract functionality used by non-inline functions into an interface and place this interface within the namespace of the corresponding non-inline functions.
 
-include/A/api.hpp:
+`include/A/api.hpp`:
 ```cpp
 namespace a{
 class some_class_interface{
@@ -261,7 +261,7 @@ class some_class : some_class_interface{
 ### 5. exposing internal class
 Suppose your API has a function that creates an internal object, and you want to expose this object in the API. `std::shared_ptr` and forward declarations can help achieve this. This approach hides internal class changes from users while ensuring that all users interact with the same version of the internal class at runtime. If you need to expose your internal class as a real class with methods, consider adding a wrapper class alongside the free functions API. Since this wrapper class is inline, it should adhere to the guidelines outlined in [case 3.](#3-changes-in-inline-parts)
 
-include/A/api.hpp:
+`include/A/api.hpp`:
 ```cpp
 #include <memory>
 namespace a{
@@ -284,7 +284,7 @@ private:
 };
 }}
 ```
-src/api.cpp:
+`src/api.cpp`:
 ```cpp
 #include "A/api.hpp"
 namespace a{
