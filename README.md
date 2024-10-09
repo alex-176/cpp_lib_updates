@@ -37,7 +37,7 @@ ModuleA source code file structure:
 ```
 ├── include
 │   └── A
-│        └──api.hpp
+│       └──api.hpp
 ├── src
 │   └── api.cpp
 ├── tests
@@ -75,7 +75,7 @@ ModuleA artifact file structure (for linux):
 ```
 ├── include
 │   └── A
-│        └──api.hpp
+│       └──api.hpp
 ├── lib
 │   └── lib/libA.so
 ├── tests
