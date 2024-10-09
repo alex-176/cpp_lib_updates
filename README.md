@@ -13,7 +13,7 @@ Table of contents:
 [2. a new struct member](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)  
 [3. changes in inline parts](#3-changes-in-inline-parts)  
 [4. inline classes and non-inline functions that use them](#4-inline-classes-and-non-inline-functions-that-use-them)  
-[5. exposing internal class](#5-exposing-internal-class)
+[5. exposing internal class](#5-exposing-internal-class)  
 [6. enumerations](#6-enumerations)  
 [7. breaking changes](#7-breaking-changes)  
 
