@@ -24,10 +24,10 @@ struct S{
 }; 
 void f(S const & s);
 ```
-One day you decide to change the structure `S` by adding another member. Tests of the library work but tests of other previously built binaries that use f start crashing. Why? You just broke binary interface of your library and all the modules that use the library must be recompiled. But what if you have to provide backward binary compatibility? In this case this article can help.
+One day, you change the structure `S` by adding another member. Tests of the library work but tests of other previously built binaries that use `f` start crashing. Why? You just broke the binary interface of your library and all the modules that use the library must be recompiled. But what if you have to provide backward binary compatibility? In this case, this article can help.
 
 ## Microservices - short intro
-Let's review a simple microservices CICD flow for 2 modules (A and B). Assume ModuleA is independent and ModuleB depends on ModuleA. We want our CI to be fast so we run in CI only corresponding module tests. CD runs tests of dependent modules. Assume all the modules use C++.      
+Let's review a simple microservices CICD flow for 2 modules (A and B). Assume ModuleA is independent and ModuleB depends on ModuleA. We want our CI to be fast, so we run only tests of the corresponding module in CI. CD runs tests of dependent modules. Assume all the modules use C++.      
 
 [![CICD flow example for microservices](microservices_cicd.png 'CICD flow example for microservices')]()
 
