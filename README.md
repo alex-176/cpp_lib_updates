@@ -196,9 +196,9 @@ void init(params const & init_params)
 ### 3. changes in inline parts
 Inline functions are not always inlined into compiled code. It means if several modules have an implementation of an inline function, only one of them will be used by the loader. For example:
 
-lib1 defines: inline int bar() { return 10; }
+lib1 defines: `inline int bar() { return 10; }`
 
-lib2 defines: inline int bar() { return 20; }
+lib2 defines: `inline int bar() { return 20; }`
 
 an app is using both lib1 and lib2. if `bar` was not inlined (it's possible) then loader will resolve both bar functions to point to one of them. it violates [ODR](https://en.cppreference.com/w/cpp/language/definition). To fix it we reside the inline code inside its own inline namespace and in case of any change we update the name of the inline namespace:
 
