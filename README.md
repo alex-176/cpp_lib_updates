@@ -174,7 +174,7 @@ void init(params const & _params)
 }
 }}
 ```
-add another file that implements translation from the old struct into the new one. This way we provide binary compatibility for old clients.
+Add another file that implements translation from the old struct into the new one. This way we provide binary compatibility for old clients.
 
 `src/api_compatibility.cpp`:
 ```cpp
@@ -200,7 +200,7 @@ lib1 defines: `inline int bar() { return 10; }`
 
 lib2 defines: `inline int bar() { return 20; }`
 
-an app is using both lib1 and lib2. if `bar` was not inlined (it's possible) then loader will resolve both bar functions to point to one of them. it violates [ODR](https://en.cppreference.com/w/cpp/language/definition). To fix it we reside the inline code inside its own inline namespace and in case of any change we update the name of the inline namespace:
+An app is using both lib1 and lib2. if `bar` was not inlined (it's possible) then loader will resolve both bar functions to point to one of them. it violates [ODR](https://en.cppreference.com/w/cpp/language/definition). To fix it we reside the inline code inside its own inline namespace and in case of any change we update the name of the inline namespace:
 
 `include/A/api.hpp`:
 ```cpp
@@ -213,7 +213,7 @@ inline int bar() { return 10; }
 }}
 ```
 ### 4. inline classes and non-inline functions that use them
-assume we have the following interface:
+Assume we have the following interface:
 
 `include/A/api.hpp`:
 ```cpp
@@ -232,7 +232,7 @@ class some_class{
 void use_some_class(some_class & arg);
 }
 ```
-we have non-inline `use_some_class()` ([case 2.](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)) that depends on inline part - `some_class` ([case 3.](#3-changes-in-inline-parts)). The concept of inline changes (just update its namespace name) does not work here because it causes an update of non-inline `use_some_class()`. One possible approach is to extract functionality used by non-inline functions into an interface and place this interface within the namespace of the corresponding non-inline functions.
+We have non-inline `use_some_class()` ([case 2.](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)) that depends on inline part - `some_class` ([case 3.](#3-changes-in-inline-parts)). The concept of inline changes (just update its namespace name) does not work here because it causes an update of non-inline `use_some_class()`. One possible approach is to extract functionality used by non-inline functions into an interface and place this interface within the namespace of the corresponding non-inline functions.
 
 `include/A/api.hpp`:
 ```cpp
