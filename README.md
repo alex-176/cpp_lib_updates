@@ -13,8 +13,9 @@ Table of contents:
 [2. a new struct member](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)  
 [3. changes in inline parts](#3-changes-in-inline-parts)  
 [4. inline classes and non-inline functions that use them](#4-inline-classes-and-non-inline-functions-that-use-them)  
-[5. enumerations](#5-enumerations)  
-[6. breaking changes](#6-breaking-changes)  
+[5. exposing internal class](#5-exposing-internal-class)
+[6. enumerations](#6-enumerations)  
+[7. breaking changes](#7-breaking-changes)  
 
 ## Motivation
 Assume you have a C++ library with a simple API:
@@ -296,7 +297,7 @@ int get_value(Internal_class_ptr class_ptr){
 }
 }
 ```
-### 5. enumerations
+### 6. enumerations
 To prevent the size of an enum type from changing, specify an underlying type (e.g. `uint32_t`). The only modification that will maintain backward compatibility is adding new values to the enum.
 ```cpp
 namespace a{ 
@@ -307,6 +308,6 @@ enum class Enum : uint32_t{
 };
 }
 ```
-### 6. breaking changes 
+### 7. breaking changes 
 Sometimes, a breaking change — such as deleting a struct member — becomes unavoidable. Unfortunately, there's no direct C++ solution for this. The only approach I know of is ensuring that your CI/CD pipeline supports the simultaneous promotion of multiple repositories.
 
