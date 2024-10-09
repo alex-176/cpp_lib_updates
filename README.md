@@ -13,8 +13,8 @@ Table of contents:
 [2. a new struct member](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)  
 [3. changes in inline parts](#3-changes-in-inline-parts)  
 [4. inline classes and non-inline functions that use them](#4-inline-classes-and-non-inline-functions-that-use-them)  
-[6. enumerations](#6-enumerations)  
-[7. breaking changes](#7-breaking-changes)  
+[5. enumerations](#5-enumerations)  
+[6. breaking changes](#6-breaking-changes)  
 
 ## Motivation
 Assume you have a C++ library with a simple API:
@@ -297,7 +297,7 @@ int get_value(Internal_class_ptr class_ptr){
 }
 }
 ```
-### 6. enumerations
+### 5. enumerations
 For an enum type not to change its size in case of a change - make sure you use an underlying type (e.g. uint32_t).  The only change that will not break backward compatibility is adding values to the enum. 
 ```cpp
 namespace a{ 
@@ -308,6 +308,6 @@ enum class Enum : uint32_t{
 };
 }
 ```
-### 7. breaking changes 
+### 6. breaking changes 
 Sometimes there is no other choice and we have to make a breaking change such as a struct member deletion.  There is no C++ solution. The only way I know - CI/CD should support the simultaneous promotion of several repositories.
 
