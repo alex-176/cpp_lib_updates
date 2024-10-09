@@ -24,10 +24,10 @@ struct S{
 }; 
 void f(S const & s);
 ```
-One day, you change the structure `S` by adding another member. Tests of the library work but tests of other previously built binaries that use `f` start crashing. Why? You just broke the binary interface of your library and all the modules that use the library must be recompiled. But what if you have to provide backward binary compatibility? In this case, this article can help.
+Suppose you modify the structure `S` by adding a new member. While the library’s own tests pass, some previously built binaries that depend on the function `f` begin to crash. Why is this happening? You've unintentionally broken the binary interface (ABI) of your library, which requires all dependent modules to be recompiled to function correctly. But what if you need to ensure backward binary compatibility? This article will guide you through the process.
 
 ## Microservices - short intro
-Let's review a simple microservices CICD flow for 2 modules (A and B). Assume ModuleA is independent and ModuleB depends on ModuleA. We want our CI to be fast, so we run only tests of the corresponding module in CI. CD runs tests of dependent modules. Assume all the modules use C++.      
+Let’s review a simple CI/CD pipeline for two microservices: ModuleA and ModuleB. Assume that ModuleA is independent, while ModuleB depends on ModuleA. To keep our CI pipeline efficient, we only run tests for the module that has been modified. However, during the CD stage, we run tests for all dependent modules.
 
 [![CICD flow example for microservices](doc/microservices_cicd.png 'CICD flow example for microservices')]()
 
@@ -43,7 +43,6 @@ ModuleA source code file structure:
 │   └── test.cpp
 └── ...
 ```
-
 include/A/api.hpp:
 ```cpp
 namespace a{
@@ -54,8 +53,9 @@ void init(params const & init_params);
 void foo();
 inline int bar() { return 10; }
 }
-src/api.cpp
-
+```
+src/api.cpp:
+```cpp
 #include "A/api.hpp"
 #include <iostream>
 namespace a{
@@ -105,11 +105,10 @@ int main()
 2. API header should be clean and contain only one name for a function (preferably without a version suffix)  
 
 ### Why not C API?
-Often, people avoid C++ API because of an old trauma of C++ name mangling and ABI instability (on Linux it was std::string/std::list change in C++11, and on Windows is was VC++ that was changing name mangling in every version). Since 2015 C++ ABI and name mangling are quite stable. Of course, bugs happen and you can use C API with [hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api) if you want to be on the safe side. In reality, it causes more support work to save some headaches in case of a bug in your compiler. In my view, the price is quite high for mitigating only one type of possible compiler bugs. But if you insist - use C names with versions (foo->foo_v1->foo_v2) and C++ inline API on top ([hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api)). 
+Many developers avoid C++ APIs due to past issues with name mangling and ABI instability. For example, on Linux, `std::string` and `std::list` changes in C++11 caused problems, and on Windows, Visual C++ introduced new name mangling schemes with each version. However, since 2015, C++ ABI and name mangling have become quite stable. While bugs can still occur, you can opt for a C API using [the hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api) for extra safety. In practice, though, this approach often results in more support work to avoid some headaches in case of a bug in your compiler. In my view, the effort outweighs the benefit, as it only addresses one specific type of compiler issues. But if you prefer to be on the safe side, consider using C function names with versions (e.g., `foo` -> `foo_v1` -> `foo_v2`) with an inline C++ API layered on top (see [the hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api)).
 
 ### Names visibility
-In examples for simplicity, we assume all the symbols have default visibility (e.i. symbol names are saved into a binary and available at runtime for name resolution).  In reality, only public  API names should be visible and marked accordingly. see [Introduction to symbol visibility](https://developer.ibm.com/articles/au-aix-symbol-visibility/).
-
+For simplicity in our examples, we assume all symbols have default visibility (i.e., symbol names are stored in the binary and available at runtime for name resolution). In practice, however, only public API symbols should be visible, and they should be explicitly marked as such. see [Introduction to symbol visibility](https://developer.ibm.com/articles/au-aix-symbol-visibility/).
 
 ## Cases of possible changes and ways to add them:
 ### 1. a new function argument
@@ -139,7 +138,7 @@ void foo()
 }
 ```
 
-Now ModuleA exports both foo() and foo(int), but only foo(int) is exposed in the header. So after the next recompilation of ModuleB, it will start using foo(int).
+Now ModuleA exports both `foo()` and `foo(int)`, but only `foo(int)` is exposed in the header. So after the next recompilation of ModuleB, it will start using `foo(int)`.
 
 
 ### 2. a new struct member and a function that takes it as an argument 
@@ -162,8 +161,9 @@ void init(params const & _params);
 }
 // ...
 }
-src/api.cpp
-
+```
+src/api.cpp:
+```cpp
 #include <A/api.hpp>
 #include <iostream>
 namespace a{
@@ -176,7 +176,7 @@ void init(params const & _params)
 ```
 add another file that implements translation from the old struct into the new one. This way we provide binary compatibility for old clients.
 
-src/api_compatibility.cpp
+src/api_compatibility.cpp:
 ```cpp
 #include <A/api.hpp>
 namespace a{
@@ -202,7 +202,7 @@ lib2 defines: `inline int bar() { return 20; }`
 
 an app is using both lib1 and lib2. if `bar` was not inlined (it's possible) then loader will resolve both bar functions to point to one of them. it violates [ODR](https://en.cppreference.com/w/cpp/language/definition). To fix it we reside the inline code inside its own inline namespace and in case of any change we update the name of the inline namespace:
 
-  include/A/api.hpp:
+include/A/api.hpp:
 ```cpp
 namespace a{
 // ...
@@ -232,9 +232,9 @@ class some_class{
 void use_some_class(some_class & arg);
 }
 ```
-we have non-inline use_some_class (case 2) that depends on inline part - some_class ([case 3.](#3-changes-in-inline-parts)). The concept of inline changes (just update its namespace name) does not work here because it causes an update of non-inline use_some_class. A possible approach is to extract functionality that is used by non-inline functions into an interface and put the interface into the namespace of the corresponding non-inline functions
+we have non-inline `use_some_class()` ([case 2.](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)) that depends on inline part - `some_class` ([case 3.](#3-changes-in-inline-parts)). The concept of inline changes (just update its namespace name) does not work here because it causes an update of non-inline `use_some_class()`. One possible approach is to extract functionality used by non-inline functions into an interface and place this interface within the namespace of the corresponding non-inline functions.
 
-include/A/api.hpp
+include/A/api.hpp:
 ```cpp
 namespace a{
 class some_class_interface{
@@ -259,9 +259,9 @@ class some_class : some_class_interface{
 }}
 ```
 ### 5. exposing internal class
-Assume your API has a function that creates an internal object and you want to expose this object in API. std::shared_ptr and forward declaration can help. This way allows hiding changes of internal class from users and all users will use the same version of internal class at runtime. If you want to expose your internal class as a class with some functionality - consider adding a wrapper class in addition to free functions API. This class is inline one so it should follow case 3.
+Suppose your API has a function that creates an internal object, and you want to expose this object in the API. `std::shared_ptr` and forward declarations can help achieve this. This approach hides internal class changes from users while ensuring that all users interact with the same version of the internal class at runtime. If you need to expose your internal class as a real class with methods, consider adding a wrapper class alongside the free functions API. Since this wrapper class is inline, it should adhere to the guidelines outlined in [case 3.](#3-changes-in-inline-parts)
 
-include/A/api.hpp
+include/A/api.hpp:
 ```cpp
 #include <memory>
 namespace a{
@@ -284,7 +284,7 @@ private:
 };
 }}
 ```
-src/api.cpp
+src/api.cpp:
 ```cpp
 #include "A/api.hpp"
 namespace a{
@@ -298,7 +298,7 @@ int get_value(Internal_class_ptr class_ptr){
 }
 ```
 ### 5. enumerations
-For an enum type not to change its size in case of a change - make sure you use an underlying type (e.g. uint32_t).  The only change that will not break backward compatibility is adding values to the enum. 
+To prevent the size of an enum type from changing, specify an underlying type (e.g. `uint32_t`). The only modification that will maintain backward compatibility is adding new values to the enum.
 ```cpp
 namespace a{ 
 enum class Enum : uint32_t{
@@ -309,5 +309,5 @@ enum class Enum : uint32_t{
 }
 ```
 ### 6. breaking changes 
-Sometimes there is no other choice and we have to make a breaking change such as a struct member deletion.  There is no C++ solution. The only way I know - CI/CD should support the simultaneous promotion of several repositories.
+Sometimes, a breaking change — such as deleting a struct member — becomes unavoidable. Unfortunately, there's no direct C++ solution for this. The only approach I know of is ensuring that your CI/CD pipeline supports the simultaneous promotion of multiple repositories.
 
