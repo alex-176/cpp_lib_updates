@@ -6,5 +6,5 @@ set(CMAKE_CXX_STANDARD 17)
 add_library(api_updates src/api.cpp)
 target_include_directories(api_updates PUBLIC include)
 
-add_executable(test_api tests/main.cpp)
+add_executable(test_api tests/test.cpp)
 target_link_libraries(test_api api_updates)
