@@ -1,4 +1,4 @@
-[![C++ microservices](cpp_microservices.webp 'C++ microservices')]()
+[![C++ microservices](doc/cpp_microservices.webp 'C++ microservices')]()
 # Guide to C++ API changes in microservice architecture
 
 Table of contents:
@@ -29,7 +29,7 @@ One day, you change the structure `S` by adding another member. Tests of the lib
 ## Microservices - short intro
 Let's review a simple microservices CICD flow for 2 modules (A and B). Assume ModuleA is independent and ModuleB depends on ModuleA. We want our CI to be fast, so we run only tests of the corresponding module in CI. CD runs tests of dependent modules. Assume all the modules use C++.      
 
-[![CICD flow example for microservices](microservices_cicd.png 'CICD flow example for microservices')]()
+[![CICD flow example for microservices](doc/microservices_cicd.png 'CICD flow example for microservices')]()
 
 
 ModuleA source code file structure:
