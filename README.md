@@ -8,7 +8,7 @@ Table of contents:
 [Goals](#goals)  
 [Why no C APi?](#why-not-c-api)  
 [Names visibility](#names-visibility)  
-[Cases of possible changes and ways to add them:](#cases-of-possible-changes-and-ways-to-add-them)  
+[Cases of possible changes and ways to introduce them:](#cases-of-possible-changes-and-ways-to-introduce-them)  
 [1. a new function argument](#1-a-new-function-argument)  
 [2. a new struct member](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)  
 [3. changes in inline parts](#3-changes-in-inline-parts)  
@@ -111,7 +111,7 @@ Many developers avoid C++ APIs due to past issues with name mangling and ABI ins
 ### Names visibility
 For simplicity in our examples, we assume all symbols have default visibility (i.e., symbol names are stored in the binary and available at runtime for name resolution). In practice, however, only public API symbols should be visible, and they should be explicitly marked as such. see [Introduction to symbol visibility](https://developer.ibm.com/articles/au-aix-symbol-visibility/).
 
-## Cases of possible changes and ways to add them:
+## Cases of possible changes and ways to introduce them:
 ### 1. a new function argument
 Change the function signature by adding a new argument with a default value and define an old function that calls a new one:
 
@@ -144,7 +144,7 @@ Now ModuleA exports both `foo()` and `foo(int)`, but only `foo(int)` is exposed 
 ### 2. a new struct member and a function that takes it as an argument 
 Inline namespaces come to rescue.
 
-[Inline namespaces](https://en.cppreference.com/w/cpp/language/namespace#Inline_namespaces) exist since c++11. They don't change the way the client code looks but change compiler-generated mangled names inside inline namespace (usually by adding a namespace name to the generated names). [example on godbolt](https://godbolt.org/z/WsGM5TKe5)
+[Inline namespaces](https://en.cppreference.com/w/cpp/language/namespace#Inline_namespaces) exist since C++11. They don't change the way the client code looks but change compiler-generated mangled names inside inline namespace (usually by adding a namespace name to the generated names). [example on godbolt](https://godbolt.org/z/WsGM5TKe5)
 
 The idea is to place the old implementation within an old inline namespace in a `.cpp` file, and the new implementation within a new inline namespace. This allows old clients to resolve the old names at runtime, while clients that are recompiled will use the new names.
 
