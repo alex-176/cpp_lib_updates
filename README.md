@@ -6,7 +6,7 @@ Table of contents:
 [Motivation](#motivation)  
 [Microservices - short intro](#microservices---short-intro)  
 [Goals](#goals)  
-[Why no C APi?](#why-not-c-api)  
+[Why not C APi?](#why-not-c-api)  
 [Names visibility](#names-visibility)  
 [Cases of possible changes and ways to introduce them:](#cases-of-possible-changes-and-ways-to-introduce-them)  
 [1. a new function argument](#1-a-new-function-argument)  
