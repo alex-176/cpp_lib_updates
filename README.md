@@ -319,5 +319,5 @@ Examples of breaking changes:
 In some cases, breaking changes are inevitable. Unfortunately, C++ doesn't offer a direct solution for handling them smoothly. The only effective approach is to modify both the library and all dependent modules, ensuring that your CI/CD pipeline supports the simultaneous promotion of multiple repositories.
   
 ## Conclusion
-There are strategies for evolving C++ APIs in microservices without breaking ABI compatibility. The most important are inline namespaces, careful managing function signatures, and using shared pointers to handle changes smoothly. There are still breaking changes that require simultaneous changes in multiple repositories but hopefully, it will be a rare case. 
+There are strategies for evolving C++ APIs in microservices without breaking ABI compatibility. The most important are inline namespaces, careful managing function signatures, and using shared pointers. There are still breaking changes that require simultaneous changes in multiple repositories but hopefully, it will be a rare case. 
 
