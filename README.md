@@ -18,7 +18,7 @@ Table of contents:
 [7. breaking changes](#7-breaking-changes)  
 
 ## Motivation
-Assume you have a C++ library with a simple API:
+Assume you have a C++ library that is used by other modules. The library provides a simple API:
 ```cpp
 struct S{
   int a;
