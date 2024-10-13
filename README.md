@@ -29,7 +29,7 @@ void f(S const & s);
 Suppose you modify the structure `S` by adding a new member. While the library’s own tests pass, some previously built binaries that depend on the function `f` begin to crash. Why is this happening? You've unintentionally broken the binary interface (ABI) of your library, which requires all dependent modules to be recompiled to function correctly. But what if you need to ensure backward binary compatibility? This article will guide you through the process.
 
 ## Microservices - short intro
-Let’s review a simple CI/CD pipeline for two microservices: ServiceA and ServiceB. Assume that ServiceA is independent, while ServiceB depends on ServiceA. To keep our CI pipeline efficient, we only run tests for the module that has been modified. However, during the CD stage, we run tests for all dependent modules.
+Let’s review a simple CI/CD pipeline for two microservices: ServiceA and ServiceB. Assume that ServiceA is independent, while ServiceB depends on ServiceA. To keep our CI pipeline efficient, we only run tests for the service that has been modified. However, during the CD stage, we run tests for all dependent services. In this article, we use terms `service` and `module` interchangeably.
 
 [![CICD flow example for microservices](doc/microservices_cicd.svg 'CICD flow example for microservices')]()
 
