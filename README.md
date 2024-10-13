@@ -29,12 +29,12 @@ void f(S const & s);
 Suppose you modify the structure `S` by adding a new member. While the library’s own tests pass, some previously built binaries that depend on the function `f` begin to crash. Why is this happening? You've unintentionally broken the binary interface (ABI) of your library, which requires all dependent modules to be recompiled to function correctly. But what if you need to ensure backward binary compatibility? This article will guide you through the process.
 
 ## Microservices - short intro
-Let’s review a simple CI/CD pipeline for two microservices: ModuleA and ModuleB. Assume that ModuleA is independent, while ModuleB depends on ModuleA. To keep our CI pipeline efficient, we only run tests for the module that has been modified. However, during the CD stage, we run tests for all dependent modules.
+Let’s review a simple CI/CD pipeline for two microservices: ServiceA and ServiceB. Assume that ServiceA is independent, while ServiceB depends on ServiceA. To keep our CI pipeline efficient, we only run tests for the module that has been modified. However, during the CD stage, we run tests for all dependent modules.
 
-[![CICD flow example for microservices](doc/microservices_cicd.png 'CICD flow example for microservices')]()
+[![CICD flow example for microservices](doc/microservices_cicd.svg 'CICD flow example for microservices')]()
 
 
-ModuleA source code file structure:
+ServiceA source code file structure:
 ```
 ├── include
 │   └── A
@@ -72,7 +72,7 @@ void foo()
 }
 ```
 
-ModuleA artifact file structure (for linux):
+ServiceA artifact file structure (for linux):
 ```
 ├── include
 │   └── A
@@ -83,7 +83,7 @@ ModuleA artifact file structure (for linux):
 │   └── testA
 └── ...
 ```
-ModuleB source code file structure:
+ServiceB source code file structure:
 
 src/main.cpp
 
@@ -102,7 +102,7 @@ int main()
 
 ## Goals:
 1. Backward compatibility must be both at API and ABI level.  
-*if we naively change `void foo();` to `void foo(int arg = 0);` we break ABI compatibility only. CI tests will pass and CD tests will fail to start because ModuleB expects `f()` in libA.so.* 
+*if we naively change `void foo();` to `void foo(int arg = 0);` we break ABI compatibility only. CI tests will pass and CD tests will fail to start because ServiceB expects `f()` in libA.so.* 
 
 2. API header should be clean and contain only one name for a function (preferably without a version suffix)  
 
@@ -140,7 +140,7 @@ void foo()
 }
 ```
 
-Now ModuleA exports both `foo()` and `foo(int)`, but only `foo(int)` is exposed in the header. So after the next recompilation of ModuleB, it will start using `foo(int)`.
+Now ServiceA exports both `foo()` and `foo(int)`, but only `foo(int)` is exposed in the header. So after the next recompilation of ServiceB, it will start using `foo(int)`.
 
 ### 2. a new struct member and a function that takes it as an argument 
 Inline namespaces come to rescue.
@@ -214,11 +214,15 @@ inline int bar() { return 10; }
 }}
 ```
 ### 4. inline classes and non-inline functions that use them
-Assume we have the following interface:
+Assume we have a none-inline free function that accepts an inline class as an argument. The function is using only a small part of the class.
 
 `include/A/api.hpp`:
 ```cpp
 namespace a{
+class inline_class_1{/*...*/};
+class inline_class_2{/*...*/};
+
+// inline class that is used by a non-inline function 
 class some_class{
    public:
    some_class(int arg1, int arg2) {/*...*/}
@@ -227,13 +231,15 @@ class some_class{
    void f3() { /*...*/}
    void f4() { /*...*/}
    private:
-   int memeber1;
-   int memeber2;
+   inline_class_1 memeber1;
+   inline_class_2 memeber2;
 };
+// non-inline function that uses inline some_class.
+// use_some_class is using f1 and f2 methods only 
 void use_some_class(some_class & arg);
 }
 ```
-We have non-inline `use_some_class()` ([case 2.](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)) that depends on inline part - `some_class` ([case 3.](#3-changes-in-inline-parts)). The concept of inline changes (just update its namespace name) does not work here because it causes an update of non-inline `use_some_class()`. One possible approach is to extract functionality used by non-inline functions into an interface and place this interface within the namespace of the corresponding non-inline functions.
+We have non-inline `use_some_class()` ([case 2.](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)) that depends on inline part - `some_class` ([case 3.](#3-changes-in-inline-parts)). `use_some_class()` is using a small part of `some_class` - `f1()` and `f2()` methods. In this case the concept of inline changes (just update its namespace name) does not fit well because any update of `some_class` and inline parts it depends on (`inline_class_1`, `inline_class_2`) causes a version update of non-inline `use_some_class()`. One possible approach is to extract functionality used by non-inline functions into an interface and place this interface within the namespace of the corresponding non-inline functions.
 
 `include/A/api.hpp`:
 ```cpp
@@ -243,19 +249,25 @@ class some_class_interface{
    virtual void f1() = 0;
    virtual void f2() = 0;
 };
-void use_some_class(some_class & arg);
+// non-inline function that uses some_class_interface that exposes f1 and f2 only  
+void use_some_class(some_class_interface & arg);
 
 inline namespace inline_code_v_1{
-class some_class : some_class_interface{
+
+class inline_class_1{/*...*/};
+class inline_class_2{/*...*/};
+
+// inline class that can be freely modified without touching versioning of use_some_class 
+class some_class : public some_class_interface{
    public:
    some_class(int arg1, int arg2) {/*...*/}
-   void f1() { /*...*/}
-   void f2() { /*...*/}
+   void f1() override { /*...*/}
+   void f2() override { /*...*/}
    void f3() { /*...*/}
    void f4() { /*...*/}
    private:
-   int member1;
-   int member2;
+   inline_class_1 member1;
+   inline_class_2 member2;
 };
 }}
 ```
@@ -268,20 +280,20 @@ Suppose your API has a function that creates an internal object, and you want to
 namespace a{
 // use forward declaration + shared_ptr
 class internal_class;
-using internal_class_ptr = std::shared_ptr<internal_class>;
+using internal_class_sptr = std::shared_ptr<internal_class>;
 
 // provide functions that redirect calls to internal_class methods
-int get_value(Internal_class_ptr class_ptr);
+int get_value(internal_class_sptr class_ptr);
 
 // If you want to expose the functionality as a class
-// provide class that redirect calls to free functions
+// provide a class that redirects calls to free functions
 inline namespace inline_code_v_1{
 class exposed_internal_class{
 public:
-    exposed_internal_class(Internal_class_ptr class_ptr) : class_ptr(class_ptr){}
-    int get_value() { get_value(get_value); }
+    exposed_internal_class(internal_class_sptr impl) : _impl(impl){}
+    int get_value() { return get_value(_impl); } // redirect call to a free function
 private:
-    internal_class_ptr  class_ptr;
+    internal_class_sptr  _impl;
 };
 }}
 ```
@@ -289,17 +301,20 @@ private:
 ```cpp
 #include "A/api.hpp"
 namespace a{
+
+// internal_class definition 
 class internal_class { 
 public:
     int get_value() { return 5; }; 
 };
-int get_value(Internal_class_ptr class_ptr){
+
+int get_value(internal_class_sptr class_ptr){
     return class_ptr->get_value();
 }
 }
 ```
 ### 6. enumerations
-To prevent the size of an enum type from changing, specify an underlying type (e.g. `uint32_t`). The only modification that will maintain backward compatibility is adding new values to the enum.
+By default, the size of enum depends on the range of its values. To prevent the size of an enum type from changing, specify an underlying type (e.g. `uint32_t`). The only modification that will maintain backward compatibility is adding new values to the enum.
 ```cpp
 namespace a{ 
 enum class Enum : uint32_t{
