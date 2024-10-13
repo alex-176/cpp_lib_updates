@@ -239,7 +239,7 @@ class some_class{
 void use_some_class(some_class & arg);
 }
 ```
-We have non-inline `use_some_class()` ([case 2.](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)) that depends on inline part - `some_class` ([case 3.](#3-changes-in-inline-parts)). `use_some_class()` is using a small part of `some_class` - `f1()` and `f2()` methods. In this case the concept of inline changes (just update its namespace name) does not fit well because any update of `some_class` and inline parts it depends on (`inline_class_1`, `inline_class_2`) causes a version update of non-inline `use_some_class()`. One possible approach is to extract functionality used by non-inline functions into an interface and place this interface within the namespace of the corresponding non-inline functions.
+We have non-inline `use_some_class()` ([case 2.](#2-a-new-struct-member-and-a-function-that-takes-it-as-an-argument)) that depends on inline part - `some_class` ([case 3.](#3-changes-in-inline-parts)). `use_some_class()` is using a small part of `some_class` - `f1()` and `f2()` methods. In this case the concept of inline changes (just update its namespace name) does not fit well because any update of `some_class` or inline parts it depends on (`inline_class_1`, `inline_class_2`) causes a version update of non-inline `use_some_class()`. One possible approach is to extract functionality used by non-inline functions into an interface and place this interface within the namespace of the corresponding non-inline functions.
 
 `include/A/api.hpp`:
 ```cpp
