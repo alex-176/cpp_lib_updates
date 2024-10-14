@@ -257,7 +257,7 @@ inline namespace inline_code_v_1{
 class inline_class_1{/*...*/};
 class inline_class_2{/*...*/};
 
-// inline class that can be freely modified without touching versioning of use_some_class 
+// inline class that can be freely modified without touching the versioning of use_some_class 
 class some_class : public some_class_interface{
    public:
    some_class(int arg1, int arg2) {/*...*/}
