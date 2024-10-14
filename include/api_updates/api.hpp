@@ -20,8 +20,9 @@ inline namespace v_0 {
 }
 
 // inline part inside its own inline namespace
-inline namespace inline_v_0 {
-    inline int bar() { return 10; }
+// case 3 - change inline namespace
+inline namespace inline_v_1 {
+    inline int bar() { return 20; } // case 3 - change any inline part causes the change of inline namespace name
 }
 
 }
