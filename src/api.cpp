@@ -20,10 +20,15 @@ inline namespace v_0
     {
         foo(0);
     }
+}
 
+// case 2: update version namespace
+inline namespace v_1
+{
+    // case 2: change the implementation to use a new struct member
     void init(params const &init_params)
     {
-        std::cout << "hello from init:  name: " << init_params.name << "\n";
+        std::cout << "hello from init:  name: " << init_params.name << " age: " << init_params.age << "\n";
     }
 }
 }
