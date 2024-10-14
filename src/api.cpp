@@ -9,9 +9,16 @@ public:
 
 inline namespace v_0
 {
+    // add an implementation of a function with a new argument
+    void foo(int arg)
+    {
+        std::cout << "hello from foo with arg: " << arg << "\n";
+    }
+
+    // change the old function implementation to call a new one or keep the existing implementation as is if necessary
     void foo()
     {
-        std::cout << "hello from foo\n";
+        foo(0);
     }
 
     void init(params const &init_params)

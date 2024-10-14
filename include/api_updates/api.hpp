@@ -13,7 +13,7 @@ inline namespace v_0 {
 
     void init(params const &init_params);
 
-    void foo();
+    void foo(int arg = 0); // add an argument with a default value (original version has no args)
 }
 
 // inline part inside its own inline namespace
