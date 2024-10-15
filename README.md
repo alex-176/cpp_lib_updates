@@ -113,7 +113,7 @@ Many developers avoid C++ APIs due to past issues with name mangling and ABI ins
 For simplicity in our examples, we assume all symbols have default visibility (i.e., symbol names are stored in the binary and available at runtime for name resolution). In practice, however, only public API symbols should be visible, and they should be explicitly marked as such. see [Introduction to symbol visibility](https://developer.ibm.com/articles/au-aix-symbol-visibility/).
 
 ## Cases of possible changes and ways to introduce them:
-### 1. a new function argument
+### 1. a new function argument ([source diff](https://github.com/alex-176/cpp_lib_updates/commit/00a9c279a11014490dfb25e94a5df733687cf100))
 Change the function signature by adding a new argument with a default value and define an old function that calls a new one:
 
 `include/A/api.hpp`:
@@ -142,7 +142,7 @@ void foo()
 
 Now ServiceA exports both `foo()` and `foo(int)`, but only `foo(int)` is exposed in the header. So after the next recompilation of ServiceB, it will start using `foo(int)`.
 
-### 2. a new struct member and a function that takes it as an argument 
+### 2. a new struct member and a function that takes it as an argument ([source diff](https://github.com/alex-176/cpp_lib_updates/commit/8e4a6ef8a1cc3e081f0db2527d29fa7a9a4bd402))
 Inline namespaces come to rescue.
 
 [Inline namespaces](https://en.cppreference.com/w/cpp/language/namespace#Inline_namespaces) exist since C++11. They don't change the way the client code looks but change compiler-generated mangled names inside inline namespace (usually by adding a namespace name to the generated names). [example on godbolt](https://godbolt.org/z/WsGM5TKe5)
@@ -194,7 +194,7 @@ void init(params const & init_params)
 }
 }
 ```
-### 3. changes in inline parts
+### 3. changes in inline parts ([source diff][https://github.com/alex-176/cpp_lib_updates/commit/62459f5a9c29e91eac314cd925a2338d5ec68f97])
 Inline functions are not always inlined into compiled code. It means if several modules have an implementation of an inline function, only one of them will be used by the loader. For example:
 
 lib1 defines: `inline int bar() { return 10; }`
@@ -213,7 +213,7 @@ inline int bar() { return 10; }
 // other inline functions, classes etc.
 }}
 ```
-### 4. inline classes and non-inline functions that use them
+### 4. inline classes and non-inline functions that use them ([source diff][https://github.com/alex-176/cpp_lib_updates/commit/66f6167348f1a3e48cbe0b5ffbda90c9c72a0737])
 Assume we have a none-inline free function that accepts an inline class as an argument. The function is using only a small part of the class.
 
 `include/A/api.hpp`:
@@ -271,7 +271,7 @@ class some_class : public some_class_interface{
 };
 }}
 ```
-### 5. exposing internal class
+### 5. exposing internal class ([source diff](https://github.com/alex-176/cpp_lib_updates/commit/9b5473b09f279d2543e67939041e3ab62e99baf7))
 Suppose your API has a function that creates an internal object, and you want to expose this object in the API. `std::shared_ptr` and forward declarations can help achieve this. This approach hides internal class changes from users while ensuring that all users interact with the same version of the internal class at runtime. If you need to expose your internal class as a real class with methods, consider adding a wrapper class alongside the free functions API. Since this wrapper class is inline, it should adhere to the guidelines outlined in [case 3.](#3-changes-in-inline-parts)
 
 `include/A/api.hpp`:
@@ -282,6 +282,8 @@ namespace a{
 class internal_class;
 using internal_class_sptr = std::shared_ptr<internal_class>;
 
+// provide a function that instantiates an object of internal_class
+internal_class_sptr create_internal_class_instance(int value);
 // provide functions that redirect calls to internal_class methods
 int get_value(internal_class_sptr class_ptr);
 
@@ -290,7 +292,7 @@ int get_value(internal_class_sptr class_ptr);
 inline namespace inline_code_v_1{
 class exposed_internal_class{
 public:
-    exposed_internal_class(internal_class_sptr impl) : _impl(impl){}
+    exposed_internal_class(int value) : _impl(a::create_internal_class_instance(value)){}
     int get_value() { return get_value(_impl); } // redirect call to a free function
 private:
     internal_class_sptr  _impl;
