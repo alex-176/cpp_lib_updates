@@ -194,7 +194,7 @@ void init(params const & init_params)
 }
 }
 ```
-### 3. changes in inline parts ([source diff][https://github.com/alex-176/cpp_lib_updates/commit/62459f5a9c29e91eac314cd925a2338d5ec68f97])
+### 3. changes in inline parts ([source diff](https://github.com/alex-176/cpp_lib_updates/commit/62459f5a9c29e91eac314cd925a2338d5ec68f97))
 Inline functions are not always inlined into compiled code. It means if several modules have an implementation of an inline function, only one of them will be used by the loader. For example:
 
 lib1 defines: `inline int bar() { return 10; }`
