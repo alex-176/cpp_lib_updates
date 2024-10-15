@@ -213,7 +213,7 @@ inline int bar() { return 10; }
 // other inline functions, classes etc.
 }}
 ```
-### 4. inline classes and non-inline functions that use them ([source diff][https://github.com/alex-176/cpp_lib_updates/commit/66f6167348f1a3e48cbe0b5ffbda90c9c72a0737])
+### 4. inline classes and non-inline functions that use them ([source diff](https://github.com/alex-176/cpp_lib_updates/commit/66f6167348f1a3e48cbe0b5ffbda90c9c72a0737))
 Assume we have a none-inline free function that accepts an inline class as an argument. The function is using only a small part of the class.
 
 `include/A/api.hpp`:
