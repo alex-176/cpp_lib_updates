@@ -282,8 +282,6 @@ namespace a{
 class internal_class;
 using internal_class_sptr = std::shared_ptr<internal_class>;
 
-// provide a function that instantiates an object of internal_class
-internal_class_sptr create_internal_class_instance(int value);
 // provide functions that redirect calls to internal_class methods
 int get_value(internal_class_sptr class_ptr);
 
@@ -292,8 +290,8 @@ int get_value(internal_class_sptr class_ptr);
 inline namespace inline_code_v_1{
 class exposed_internal_class{
 public:
-    exposed_internal_class(int value) : _impl(a::create_internal_class_instance(value)){}
-    int get_value() { return a::get_value(_impl); } // redirect call to a free function
+    exposed_internal_class(internal_class_sptr impl) : _impl(impl){}
+    int get_value() { return get_value(_impl); } // redirect call to a free function
 private:
     internal_class_sptr  _impl;
 };
