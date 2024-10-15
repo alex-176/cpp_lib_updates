@@ -20,6 +20,11 @@ inline namespace v_0
     {
         foo(0);
     }
+    // case 4- non-inline part implementation
+    void use_some_class(some_class_interface & arg)
+    {
+        std::cout << "hello from use_some_class. arg.f1(): " << arg.f1() << " arg.f2(): " << arg.f2() << "\n";
+    }
 }
 
 // case 2: update version namespace
