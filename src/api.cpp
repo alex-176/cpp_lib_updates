@@ -4,7 +4,10 @@ namespace a {
 
 class internal_class {
 public:
-    int get_value() { return 5; };
+    internal_class(int value) : _value(value){}
+    int get_value() const { return _value; };
+private:
+    int _value;
 };
 
 inline namespace v_0
@@ -24,6 +27,17 @@ inline namespace v_0
     void use_some_class(some_class_interface & arg)
     {
         std::cout << "hello from use_some_class. arg.f1(): " << arg.f1() << " arg.f2(): " << arg.f2() << "\n";
+    }
+
+    // case 5 - functions implementation
+    internal_class_sptr create_internal_class_instance(int value)
+    {
+        return std::make_shared<internal_class>(value);
+    }
+
+    int get_value(internal_class_sptr const & class_ptr)
+    {
+        return class_ptr->get_value();
     }
 }
 
