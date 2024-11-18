@@ -57,8 +57,8 @@ inline void print(S const& s)
 // Client code that can be used in both ABI0/ABI1 clients
 void client_code()
 {
-  S s{"John", 25};// not ambiguous.inline_code_abi0::S or inline_code::S depending on ABI
-  print(s); // not ambiguous. inline_code_abi0::print or inline_code::print depending on ABI
+  S s{"John", 25};// unambiguous.inline_code_abi0::S or inline_code::S depending on ABI
+  print(s); // unambiguous. inline_code_abi0::print or inline_code::print depending on ABI
 }
 ```
 ## 3. use a custom `string_wrapper` for functions that return `std::string`
@@ -118,9 +118,16 @@ std::string getName(){
 } // namespace
 ```
 
+## 4. add ABI0 test executable
+to make sure you did not miss anything - add an ABI0 test executable to your project. For `CMake`:
+```cmake
+target_compile_definitions(<YOUR_TEST_ABI0_EXECUTABLE> PRIVATE _GLIBCXX_USE_CXX11_ABI=0)
+```
+if you use gtest or other not header-only test framework - make sure you build it for ABI0
+
 ## Summary
 Designing a C++ API that works with both ABI0 and ABI1 modules isn’t complicated if you follow these guidelines:
-1. use `string_view` whenever it's possible
+1. use `string_view` whenever possible
 2. use `string_wrapper` class when returning a `std::string`
 3. Use ABI-dependent inline namespaces for inline code to prevent ODR violations.
 
