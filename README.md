@@ -109,6 +109,10 @@ int main()
 ### Why not C API?
 Many developers avoid C++ APIs due to past issues with name mangling and ABI instability. For example, on Linux, `std::string` and `std::list` changes in C++11 caused problems, and on Windows, Visual C++ introduced new name mangling schemes with each version. However, since 2015, C++ ABI and name mangling have become quite stable. While bugs can still occur, you can opt for a C API using [the hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api) for extra safety. In practice, though, this approach often results in more support work to avoid some headaches in case of a bug in your compiler. In my view, the effort outweighs the benefit, as it only addresses one specific type of compiler issues. But if you prefer to be on the safe side, consider using C function names with versions (e.g., `foo` -> `foo_v1` -> `foo_v2`) with an inline C++ API layered on top (see [the hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api)).
 
+### gcc ABI0/ABI1 support
+if your library is used by both ABI0/ABI1 clients - [here is a guide for ABI0/ABI1 support](./abi0.md)
+
+
 ### Names visibility
 For simplicity in our examples, we assume all symbols have default visibility (i.e., symbol names are stored in the binary and available at runtime for name resolution). In practice, however, only public API symbols should be visible, and they should be explicitly marked as such. see [Introduction to symbol visibility](https://developer.ibm.com/articles/au-aix-symbol-visibility/).
 
