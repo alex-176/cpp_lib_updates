@@ -20,6 +20,7 @@ For inline code, the compiler may choose not to inline functions, potentially le
 
 To avoid this, use ABI-dependent inline namespaces. Consider the example below:
 ```cpp
+// your library public API inline code
 struct S{
     std::string name;
     int age;
@@ -38,6 +39,7 @@ void client_code()
 In this case, both `print` and `S`(including its constructors and destructor) are inline, but the compiler may not inline them, leading to ABI conflicts. Using an inline namespace tied to the ABI separates ABI0 and ABI1 implementations:
 
 ```cpp
+// your library public API inline code
 #if _GLIBCXX_USE_CXX11_ABI == 0
 #  define INLINE_NAMESPACE_NAME inline_code_abi0
 #else
@@ -117,7 +119,7 @@ std::string getName(){
 }
 } // namespace
 ```
-
+another approach - provide  
 ## 4. add ABI0 test executable
 to make sure you did not miss anything - add an ABI0 test executable to your project. For `CMake`:
 ```cmake
@@ -130,5 +132,6 @@ Designing a C++ API that works with both ABI0 and ABI1 modules isn’t complicat
 1. use `string_view` whenever possible
 2. use `string_wrapper` class when returning a `std::string`
 3. Use ABI-dependent inline namespaces for inline code to prevent ODR violations.
+4. Don't forget to add tests
 
 This approach will make your C++ library ABI-compatible with both ABI0 and ABI1 environments.
