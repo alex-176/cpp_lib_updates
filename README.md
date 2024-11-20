@@ -7,6 +7,7 @@ Table of contents:
 [Microservices - short intro](#microservices---short-intro)  
 [Goals](#goals)  
 [Why not C APi?](#why-not-c-api)  
+[gcc ABI0/ABI1 support](#gcc-abi0abi1-support)  
 [Names visibility](#names-visibility)  
 [Cases of possible changes and ways to introduce them:](#cases-of-possible-changes-and-ways-to-introduce-them)  
 &nbsp;&nbsp;[1. a new function argument](#1-a-new-function-argument-source-diff)  
