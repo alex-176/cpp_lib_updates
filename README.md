@@ -7,7 +7,7 @@ Table of contents:
 [Microservices - short intro](#microservices---short-intro)  
 [Goals](#goals)  
 [Why not C APi?](#why-not-c-api)  
-[gcc ABI0/ABI1 support](#gcc-abi0abi1-support)  
+[gcc pre-C++11 ABI and C++11 ABI support](#gcc-pre-c11-abi-and-c11-abi-support)  
 [Names visibility](#names-visibility)  
 [Cases of possible changes and ways to introduce them:](#cases-of-possible-changes-and-ways-to-introduce-them)  
 &nbsp;&nbsp;[1. a new function argument](#1-a-new-function-argument-source-diff)  
@@ -110,8 +110,8 @@ int main()
 ### Why not C API?
 Many developers avoid C++ APIs due to past issues with name mangling and ABI instability. For example, on Linux, `std::string` and `std::list` changes in C++11 caused problems, and on Windows, Visual C++ introduced new name mangling schemes with each version. However, since 2015, C++ ABI and name mangling have become quite stable. While bugs can still occur, you can opt for a C API using [the hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api) for extra safety. In practice, though, this approach often results in more support work to avoid some headaches in case of a bug in your compiler. In my view, the effort outweighs the benefit, as it only addresses one specific type of compiler issues. But if you prefer to be on the safe side, consider using C function names with versions (e.g., `foo` -> `foo_v1` -> `foo_v2`) with an inline C++ API layered on top (see [the hourglass api pattern](https://github.com/JarnoRalli/hourglass-c-api)).
 
-### gcc ABI0/ABI1 support
-if your library is used by both ABI0/ABI1 clients - [here is a guide for ABI0/ABI1 support](./abi0.md)
+### gcc pre-C++11 ABI and C++11 ABI support
+if your library is used by both pre-C++11 ABI and C++11 ABI clients - [here is a guide for pre-C++11 ABI and C++11 ABI support](./abi0.md)
 
 
 ### Names visibility
