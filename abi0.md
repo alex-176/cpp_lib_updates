@@ -119,7 +119,6 @@ std::string getName(){
 }
 } // namespace
 ```
-another approach - provide  
 ## 4. add pre-C++11 ABI test executable
 to make sure you did not miss anything - add a pre-C++11 ABI test executable to your project. For `CMake`:
 ```cmake
