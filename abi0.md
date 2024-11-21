@@ -36,7 +36,7 @@ void client_code()
   print(s);
 }
 ```
-In this case, both `print` and `S`(including its constructors and destructor) are inline, but the compiler may not inline them, leading to ABI conflicts. Using an inline namespace tied to the ABI separates ABI0 and ABI1 implementations:
+In this case, both `print` and `S`(including its constructors and destructor) are inline, but the compiler may not inline them, leading to ABI conflicts. Using an inline namespace tied to the ABI separates pre-C++11 ABI and C++11 ABI implementations:
 
 ```cpp
 // your library public API inline code
