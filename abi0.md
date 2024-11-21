@@ -64,7 +64,7 @@ void client_code()
 }
 ```
 ## 3. use a custom `string_wrapper` for functions that return `std::string`
-If a function in your API returns a `std::string`, you can’t directly use it in pre-Cxx11 ABI clients. Instead, create a custom `string_wrapper` class that provides ownership and returns a `std::string_view` when needed.
+If a function in your API returns a `std::string`, you can’t directly use it in pre-C++11 ABI clients. Instead, create a custom `string_wrapper` class that provides ownership and returns a `std::string_view` when needed.
 
 Here’s an example of a simple wrapper class:
 ```cpp
