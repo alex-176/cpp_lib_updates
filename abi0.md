@@ -1,7 +1,7 @@
-# Guide for gcc ABI0/ABI1 support
+# Guide for gcc pre-C++11 ABI and C++11 ABI support
 
 ## Motivation
-Suppose you’re developing a C++ library that needs to be compatible with both ABI0 (e.g. PyTorch plugin) and ABI1 (regular `C++11` binaries). With the transition to `C++11`, the ABI (Application Binary Interface) was broken for `std::string` and `std::list`. If your library’s API avoids using these types, you’re already compatible across ABIs.
+Suppose you’re developing a C++ library that needs to be compatible with both pre-C++11 ABI (e.g. PyTorch plugin) and C++11 ABI (regular `C++11` binaries). With the transition to `C++11`, the ABI (Application Binary Interface) was broken for `std::string` and `std::list`. If your library’s API avoids using these types, you’re already compatible across ABIs.
 
 However, adapting an existing API that uses `std::string` requires additional steps (we’ll ignore std::list, as it’s rarely used in APIs). Here’s a guide:
 
@@ -29,7 +29,7 @@ inline void print(S const& s)
 {
     std::cout << "name: " << s.name << " age: " << s.age <<"\n";
 }
-// client code that can be used in both ABI0/ABI1 clients 
+// client code that can be used in both pre-C++11 ABI and C++11 ABI clients 
 void client_code()
 {
   S s{"John", 25};
@@ -41,7 +41,7 @@ In this case, both `print` and `S`(including its constructors and destructor) ar
 ```cpp
 // your library public API inline code
 #if _GLIBCXX_USE_CXX11_ABI == 0
-#  define INLINE_NAMESPACE_NAME inline_code_abi0
+#  define INLINE_NAMESPACE_NAME inline_code_pre_cxx11_abi
 #else
 #  define INLINE_NAMESPACE_NAME inline_code
 #endif
@@ -56,15 +56,15 @@ inline void print(S const& s)
 }
 }// namespace
 
-// Client code that can be used in both ABI0/ABI1 clients
+// Client code that can be used in both pre-C++11 ABI and C++11 ABI clients
 void client_code()
 {
-  S s{"John", 25};// unambiguous.inline_code_abi0::S or inline_code::S depending on ABI
-  print(s); // unambiguous. inline_code_abi0::print or inline_code::print depending on ABI
+  S s{"John", 25};// unambiguous.inline_code_pre_cxx11_abi::S or inline_code::S depending on ABI
+  print(s); // unambiguous. inline_code_pre_cxx11_abi::print or inline_code::print depending on ABI
 }
 ```
 ## 3. use a custom `string_wrapper` for functions that return `std::string`
-If a function in your API returns a `std::string`, you can’t directly use it in ABI0 clients. Instead, create a custom `string_wrapper` class that provides ownership and returns a `std::string_view` when needed.
+If a function in your API returns a `std::string`, you can’t directly use it in pre-Cxx11 ABI clients. Instead, create a custom `string_wrapper` class that provides ownership and returns a `std::string_view` when needed.
 
 Here’s an example of a simple wrapper class:
 ```cpp
@@ -112,7 +112,7 @@ With `string_wrapper`, we can implement ABI-neutral functions as follows:
 ```cpp
 // ABI-neutral implementation
 string_wrapper getNameAN();
-// ABI-dependent inline API for ABI0 and ABI1 clients
+// ABI-dependent inline API for pre-C++11 ABI and C++11 ABI clients
 inline namespace INLINE_NAMESPACE_NAME{
 std::string getName(){
   return std::string(getNameAN().str());
@@ -120,18 +120,18 @@ std::string getName(){
 } // namespace
 ```
 another approach - provide  
-## 4. add ABI0 test executable
-to make sure you did not miss anything - add an ABI0 test executable to your project. For `CMake`:
+## 4. add pre-C++11 ABI test executable
+to make sure you did not miss anything - add a pre-C++11 ABI test executable to your project. For `CMake`:
 ```cmake
-target_compile_definitions(<YOUR_TEST_ABI0_EXECUTABLE> PRIVATE _GLIBCXX_USE_CXX11_ABI=0)
+target_compile_definitions(<YOUR_TEST_PRE_CXX11_ABI_EXECUTABLE> PRIVATE _GLIBCXX_USE_CXX11_ABI=0)
 ```
-if you use gtest or other not header-only test framework - make sure you build it for ABI0
+if you use gtest or other not header-only test framework - make sure you build it for pre-C++11 ABI
 
 ## Summary
-Designing a C++ API that works with both ABI0 and ABI1 modules isn’t complicated if you follow these guidelines:
+Designing a C++ API that works with both pre-C++11 ABI and C++11 ABI modules isn’t complicated if you follow these guidelines:
 1. use `string_view` whenever possible
 2. use `string_wrapper` class when returning a `std::string`
 3. Use ABI-dependent inline namespaces for inline code to prevent ODR violations.
 4. Don't forget to add tests
 
-This approach will make your C++ library ABI-compatible with both ABI0 and ABI1 environments.
+This approach will make your C++ library ABI-compatible with both pre-C++11 ABI and C++11 ABI environments.
