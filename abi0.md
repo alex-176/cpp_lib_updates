@@ -119,12 +119,50 @@ std::string getName(){
 }
 } // namespace
 ```
+
+`getName` is heavy even for native C++11 ABI. Let's try to optimize it. The library can provide `getName_cxx11` and expose it only for C++11 ABI
+
+```cpp
+// ABI-neutral implementation
+string_wrapper getNameAN();
+
+// expose getName_cxx11 for C++11 ABI only
+#if _GLIBCXX_USE_CXX11_ABI == 0
+std::string getName_cxx11();
+#endif
+
+// ABI-dependent inline API for pre-C++11 ABI and C++11 ABI clients
+inline namespace INLINE_NAMESPACE_NAME{
+std::string getName(){
+   
+#if _GLIBCXX_USE_CXX11_ABI == 0
+  // use native implementation for C++11 ABI only
+  return getName_cxx11();
+#else  
+  return std::string(getNameAN().str());
+#endif  
+}
+} // namespace
+```
+
 ## 4. add pre-C++11 ABI test executable
 to make sure you did not miss anything - add a pre-C++11 ABI test executable to your project. For `CMake`:
 ```cmake
 target_compile_definitions(<YOUR_TEST_PRE_CXX11_ABI_EXECUTABLE> PRIVATE _GLIBCXX_USE_CXX11_ABI=0)
 ```
 if you use gtest or other not header-only test framework - make sure you build it for pre-C++11 ABI
+
+## 5. Make sure `filename` and `regex` symbols have hidden visibility
+add file `hide_symbols.map`
+```c
+{
+  local:
+    *filesystem*;
+    *regex*;
+};
+```
+use `-Wl,--version-script=hide_symbols.map` gcc command line parameter to pass the script to the linker.
+
 
 ## Summary
 Designing a C++ API that works with both pre-C++11 ABI and C++11 ABI modules isn’t complicated if you follow these guidelines:

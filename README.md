@@ -1,4 +1,4 @@
-[![C++ microservices](doc/cpp_microservices.webp 'C++ microservices')]()
+[![C++ microservices](images/cpp_microservices.webp 'C++ microservices')]()
 # Guide to C++ API changes in microservice architecture
 
 Table of contents:
@@ -32,8 +32,39 @@ Suppose you modify the structure `S` by adding a new member. While the libraryâ€
 ## Microservices - short intro
 Letâ€™s review a simple CI/CD pipeline for two microservices: ServiceA and ServiceB. Assume that ServiceA is independent, while ServiceB depends on ServiceA. To keep our CI pipeline efficient, we only run tests for the service that has been modified. However, during the CD stage, we run tests for all dependent services. In this article, we use terms `service` and `module` interchangeably.
 
-[![CICD flow example for microservices](doc/microservices_cicd.svg 'CICD flow example for microservices')]()
+```mermaid
+flowchart TD
+    subgraph ServiceA["ServiceA development"]
+        direction LR
+        A(ServiceA<br>RepoA<br>branch featureA1)
 
+        B(**PR** into<br>dev branch<br><br>)
+        C(**CI:** build ServiceA<br>and run its tests<br>against CD artifacts)
+        D(merge into dev branch<br>save CI binary artifact<br><br>)
+
+        E(**CD:** run dependent<br>modules tests<br>against CD artifacts)
+
+        F(merge into master branch<br>save CI artifacts as CD artifacts)
+    end
+        A --> B --> C --> D --> E --> F
+```
+```mermaid
+flowchart TD
+    subgraph ServiceN["ServiceN development"]
+        direction LR
+        An(ServiceN<br>RepoN<br>branch featureN1)
+
+        Bn(**PR** into<br>dev branch<br><br>)
+        Cn(**CI:** build ServiceA<br>and run its tests<br>against CD artifacts)
+        Dn(merge into dev branch<br>save CI binary artifact<br><br>)
+
+        En(**CD:** run dependent<br>modules tests<br>against CD artifacts)
+
+        Fn(merge into master branch<br>save CI artifacts as CD artifacts)
+    end
+    An --> Bn --> Cn --> Dn --> En --> Fn
+
+```
 
 ServiceA source code file structure:
 ```
@@ -343,3 +374,10 @@ In some cases, breaking changes are inevitable. Unfortunately, C++ doesn't offer
 ## Conclusion
 There are strategies for evolving C++ APIs in microservices without breaking ABI compatibility. The most important are inline namespaces, careful managing function signatures, and using shared pointers. There are still breaking changes that require simultaneous changes in multiple repositories but hopefully, it will be a rare case. 
 
+## Resources & Links
+
+- [Original Article & Code Examples](https://github.com/alex-176/cpp_lib_updates)
+- [Inline Namespaces Reference](https://en.cppreference.com/w/cpp/language/namespace#Inline_namespaces)
+- [Hourglass API Pattern](https://github.com/JarnoRalli/hourglass-c-api)
+- [Symbol Visibility Guide](https://developer.ibm.com/articles/au-aix-symbol-visibility/)
+- [ABI compliance checker](https://lvc.github.io/abi-compliance-checker/)
